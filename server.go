@@ -23,9 +23,16 @@ type Repository struct {
     Owner User
 }
 
+type LocalRepository struct {
+    Id int64
+    Name string
+    Description string
+    StargazersCount int64
+}
+
 func getRepositories(w http.ResponseWriter, r *http.Request) {
     var repositories []Repository
-    var outData []Repository
+    var outData []LocalRepository
     var username = mux.Vars(r)["username"]
     var url = "https://api.github.com/users/" + username + "/repos"
 
@@ -61,16 +68,11 @@ func getRepositories(w http.ResponseWriter, r *http.Request) {
     }
 
     for _, repositoryData := range repositories {
-         var trimmedData = Repository {
+         var trimmedData = LocalRepository {
             Id: repositoryData.Id,
             Name: repositoryData.Name,
             Description: repositoryData.Description,
-//             stargazersCount: 0,
-            Owner: User{
-                Id: repositoryData.Owner.Id,
-                Login: repositoryData.Owner.Login,
-            },
-//             ownerLogin: "logimn",
+            StargazersCount: 0,
          }
 
          outData = append(outData, trimmedData)
