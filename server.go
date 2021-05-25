@@ -21,6 +21,7 @@ type Repository struct {
     Description string
     stargazersCount int64
     Owner User
+    Stargazers_Url string `json="stargazers_url"`
 }
 
 type LocalRepository struct {
@@ -28,13 +29,15 @@ type LocalRepository struct {
     Name string
     Description string
     StargazersCount int64
+    OwnerLogin string
+    OwnerId int64
+    Stargazers_url string `json="stargazers_url"`
 }
 
-func getRepositories(w http.ResponseWriter, r *http.Request) {
+
+func githubApi(url string) []Repository{
+    url = "https://api.github.com/" + url
     var repositories []Repository
-    var outData []LocalRepository
-    var username = mux.Vars(r)["username"]
-    var url = "https://api.github.com/users/" + username + "/repos"
 
     httpClient := http.Client{
         Timeout: time.Second * 10,
@@ -67,18 +70,34 @@ func getRepositories(w http.ResponseWriter, r *http.Request) {
         log.Fatal(jsonErr)
     }
 
+    return repositories
+}
+
+func getRepositories(w http.ResponseWriter, r *http.Request) {
+    var repositories []Repository
+    var outData []LocalRepository
+    var username = mux.Vars(r)["username"]
+    var url = "users/" + username + "/repos"
+
+    repositories = githubApi(url);
+
     for _, repositoryData := range repositories {
+         var stargazers_url string = "repos/" + repositoryData.Name + "/aws_helper/stargazers"
+
          var trimmedData = LocalRepository {
             Id: repositoryData.Id,
             Name: repositoryData.Name,
             Description: repositoryData.Description,
             StargazersCount: 0,
+            OwnerLogin: repositoryData.Owner.Login,
+            OwnerId: repositoryData.Owner.Id,
+            Stargazers_url: stargazers_url,
          }
 
          outData = append(outData, trimmedData)
     }
 
-    jsonResponse, _ := json.Marshal(outData)
+    jsonResponse, _ := json.MarshalIndent(outData, "", "");
     w.WriteHeader(http.StatusOK)
     w.Write(jsonResponse)
 }
