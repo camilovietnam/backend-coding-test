@@ -21,7 +21,7 @@ type Repository struct {
     Description string
     stargazersCount int64
     Owner User
-    Stargazers_Url string `json="stargazers_url"`
+    Stargazers_count int64
 }
 
 type LocalRepository struct {
@@ -31,13 +31,8 @@ type LocalRepository struct {
     StargazersCount int64
     OwnerLogin string
     OwnerId int64
-    Stargazers_url string `json="stargazers_url"`
+    Stargazers_count int64
 }
-
-type StarGazer struct {
-    Id string
-}
-
 
 func getGithubRepositories(repositoryName string) []Repository{
     var url string = "https://api.github.com/users/" + repositoryName + "/repos"
@@ -88,8 +83,6 @@ func getRepositories(w http.ResponseWriter, r *http.Request) {
     repositories = getGithubRepositories(username);
 
     for _, repositoryData := range repositories {
-         var stargazers_url string = "repos/" + repositoryData.Name + "/aws_helper/stargazers"
-
          var trimmedData = LocalRepository {
             Id: repositoryData.Id,
             Name: repositoryData.Name,
@@ -97,7 +90,7 @@ func getRepositories(w http.ResponseWriter, r *http.Request) {
             StargazersCount: 0,
             OwnerLogin: repositoryData.Owner.Login,
             OwnerId: repositoryData.Owner.Id,
-            Stargazers_url: stargazers_url,
+            Stargazers_count: repositoryData.Stargazers_count,
          }
 
          outData = append(outData, trimmedData)
