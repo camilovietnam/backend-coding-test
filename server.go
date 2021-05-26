@@ -34,9 +34,13 @@ type LocalRepository struct {
     Stargazers_url string `json="stargazers_url"`
 }
 
+type StarGazer struct {
+    Id string
+}
 
-func githubApi(url string) []Repository{
-    url = "https://api.github.com/" + url
+
+func getGithubRepositories(repositoryName string) []Repository{
+    var url string = "https://api.github.com/users/" + repositoryName + "/repos"
     var repositories []Repository
 
     httpClient := http.Client{
@@ -73,13 +77,15 @@ func githubApi(url string) []Repository{
     return repositories
 }
 
+
+
 func getRepositories(w http.ResponseWriter, r *http.Request) {
     var repositories []Repository
     var outData []LocalRepository
     var username = mux.Vars(r)["username"]
-    var url = "users/" + username + "/repos"
 
-    repositories = githubApi(url);
+
+    repositories = getGithubRepositories(username);
 
     for _, repositoryData := range repositories {
          var stargazers_url string = "repos/" + repositoryData.Name + "/aws_helper/stargazers"
