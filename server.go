@@ -19,19 +19,25 @@ type Repository struct {
     Id int64
     Name string
     Description string
-    stargazersCount int64
-    Owner User
     Stargazers_count int64
+    Owner User
 }
 
 type LocalRepository struct {
     Id int64
     Name string
     Description string
-    StargazersCount int64
-    OwnerLogin string
-    OwnerId int64
     Stargazers_count int64
+    OwnerId int64
+    OwnerLogin string
+}
+
+func main() {
+    router := mux.NewRouter().StrictSlash(true)
+    router.HandleFunc("/{username}/repositories", getRepositories).Methods("GET")
+
+    log.Println("Server started in port 5000")
+    log.Fatal(http.ListenAndServe(":5000", router))
 }
 
 func getGithubRepositories(repositoryName string) []Repository{
@@ -72,39 +78,26 @@ func getGithubRepositories(repositoryName string) []Repository{
     return repositories
 }
 
-
-
 func getRepositories(w http.ResponseWriter, r *http.Request) {
-    var repositories []Repository
-    var outData []LocalRepository
     var username = mux.Vars(r)["username"]
-
-
-    repositories = getGithubRepositories(username);
+    var repositories []Repository = getGithubRepositories(username)
+    var outputData []LocalRepository
 
     for _, repositoryData := range repositories {
-         var trimmedData = LocalRepository {
+         var data = LocalRepository {
             Id: repositoryData.Id,
             Name: repositoryData.Name,
             Description: repositoryData.Description,
-            StargazersCount: 0,
             OwnerLogin: repositoryData.Owner.Login,
             OwnerId: repositoryData.Owner.Id,
             Stargazers_count: repositoryData.Stargazers_count,
          }
 
-         outData = append(outData, trimmedData)
+         outputData = append(outputData, data)
     }
 
-    jsonResponse, _ := json.MarshalIndent(outData, "", "");
+    jsonResponse, _ := json.MarshalIndent(outputData, "", "");
     w.WriteHeader(http.StatusOK)
     w.Write(jsonResponse)
 }
 
-func main() {
-    router := mux.NewRouter().StrictSlash(true)
-    router.HandleFunc("/{username}/repositories", getRepositories).Methods("GET")
-
-    log.Println("Server starts in port 5000")
-    log.Fatal(http.ListenAndServe(":5000", router))
-}
